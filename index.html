@@ -5,6 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Scripts Shop – Premium FiveM Resources</title>
   <link rel="stylesheet" href="css/style.css">
+  <!-- Maintenance redirect – must be in all pages except /maintenance -->
+  <script>
+    (function() {
+      if (window.location.pathname.startsWith('/maintenance')) return;
+      fetch('/api/maintenance')
+        .then(r => r.json())
+        .then(d => { if (d.active) window.location.replace('/maintenance'); })
+        .catch(() => {});
+    })();
+  </script>
 </head>
 <body>
   <nav>
