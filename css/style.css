@@ -1,45 +1,161 @@
-body {
-  font-family: Arial, sans-serif;
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 20px;
-  background: #f7f7f7;
-  color: #333;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: #0f0f1a;
+  color: #eaeaea;
+  min-height: 100vh;
+  background-image: radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.08) 0%, transparent 40%),
+                    radial-gradient(circle at 90% 80%, rgba(168, 85, 247, 0.08) 0%, transparent 40%);
+  padding: 20px;
+}
+
+/* Nav */
 nav {
-  background: #222;
-  padding: 10px;
-  margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
+  padding: 1rem 2rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 3rem;
 }
 nav a {
-  color: white;
-  margin-right: 15px;
+  color: #b4b4d4;
   text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s;
 }
-.product {
-  background: white;
-  padding: 15px;
-  margin: 10px 0;
-  border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+nav a:hover {
+  color: #ffffff;
 }
+
+/* Glass card */
+.glass {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 24px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* Product grid */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.product-card {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 20px;
+  padding: 1.8rem;
+  transition: transform 0.2s, border-color 0.2s;
+}
+.product-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(168, 85, 247, 0.4);
+}
+
+.product-card h3 {
+  font-size: 1.4rem;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, #60a5fa, #a78bfa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.price {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #e2e8f0;
+  margin: 0.8rem 0;
+}
+
 .buy-btn {
   display: inline-block;
-  background: #2ecc71;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
   color: white;
-  padding: 8px 16px;
+  padding: 0.7rem 1.5rem;
+  border-radius: 12px;
   text-decoration: none;
-  border-radius: 4px;
-  margin-right: 10px;
+  font-weight: 600;
+  transition: opacity 0.2s;
+  margin-right: 0.8rem;
 }
-.dot {
-  height: 12px;
-  width: 12px;
-  border-radius: 50%;
+.buy-btn:hover {
+  opacity: 0.9;
+}
+
+/* Status page dots */
+.status-dot {
   display: inline-block;
-  margin-right: 8px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  margin-right: 10px;
+  box-shadow: 0 0 12px currentColor;
 }
-.green { background: #2ecc71; }
-.yellow { background: #f1c40f; }
-.red { background: #e74c3c; }
-.status-item { margin: 8px 0; }
+.green { color: #22c55e; background: #22c55e; }
+.yellow { color: #eab308; background: #eab308; }
+.red { color: #ef4444; background: #ef4444; }
+.gray { color: #6b7280; background: #6b7280; }
+
+/* Admin panel forms */
+input, button {
+  font-family: inherit;
+}
+input[type="password"] {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 0.7rem 1rem;
+  color: white;
+  width: 250px;
+  outline: none;
+}
+button {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  border: none;
+  padding: 0.7rem 1.5rem;
+  border-radius: 12px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+button:hover { opacity: 0.9; }
+
+/* Loading states */
+.skeleton {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  height: 20px;
+  width: 200px;
+  margin: 8px 0;
+  animation: pulse 1.5s infinite;
+}
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.4; }
+  100% { opacity: 1; }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  nav { flex-wrap: wrap; gap: 1rem; }
+  .product-grid { grid-template-columns: 1fr; }
+}
