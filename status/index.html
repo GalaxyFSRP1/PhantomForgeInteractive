@@ -6,6 +6,16 @@
   <title>Service Status</title>
   <link rel="stylesheet" href="/css/style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <!-- Maintenance redirect -->
+  <script>
+    (function() {
+      if (window.location.pathname.startsWith('/maintenance')) return;
+      fetch('/api/maintenance')
+        .then(r => r.json())
+        .then(d => { if (d.active) window.location.replace('/maintenance'); })
+        .catch(() => {});
+    })();
+  </script>
   <style>
     .maintenance-banner {
       background: linear-gradient(135deg, #f59e0b, #eab308);
@@ -32,7 +42,6 @@
     <a href="/admin">🔒 Admin</a>
   </nav>
 
-  <!-- Maintenance banner (hidden by default) -->
   <div id="maintenance-banner" class="glass maintenance-banner" style="display: none;">
     <div>
       <strong id="maint-title"></strong>
@@ -59,7 +68,7 @@
   </div>
 
   <script>
-    // Fetch maintenance status
+    // Fetch maintenance status (for the banner on this page, not for redirection)
     async function checkMaintenance() {
       try {
         const res = await fetch('/api/maintenance');
@@ -74,7 +83,6 @@
       } catch(e) { /* ignore */ }
     }
 
-    // Fetch live statuses (as before)
     async function loadStatus() {
       const container = document.getElementById('status-list');
       try {
@@ -101,11 +109,9 @@
       }
     }
 
-    // Fetch graph data and render chart
     let chartInstance = null;
     async function loadGraph() {
       try {
-        // If you want a specific monitor, add ?id=MONITOR_ID to the URL
         const res = await fetch('/api/status-graph');
         const data = await res.json();
         if (!data.labels || data.labels.length === 0) {
@@ -162,7 +168,7 @@
     loadStatus();
     loadGraph();
 
-    // Refresh status and maintenance every 60 seconds, graph every 5 minutes
+    // Refresh status and maintenance every 60s, graph every 5 min
     setInterval(loadStatus, 60000);
     setInterval(checkMaintenance, 60000);
     setInterval(loadGraph, 300000);
