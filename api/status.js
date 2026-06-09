@@ -9,13 +9,12 @@ export default async function handler(req, res) {
       body: `api_key=${apiKey}&format=json&logs=0`
     });
     const data = await response.json();
-
     if (data.stat !== 'ok') throw new Error('UptimeRobot API error');
 
     const services = data.monitors.map(m => ({
       id: m.id,
       name: m.friendly_name,
-      status: m.status,          // 0=paused, 1=down, 2=up, 8=seems down, 9=not checked
+      status: m.status,
       statusText: m.status === 2 ? 'Operational' :
                   m.status === 9 ? 'Degraded' :
                   m.status === 1 ? 'Down' : 'Unknown'
