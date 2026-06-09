@@ -2,27 +2,57 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>System Status</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Service Status</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
   <nav>
-    <a href="/">Shop</a>
-    <a href="/status">Status</a>
-    <a href="/admin">Admin</a>
+    <a href="/">🛒 Shop</a>
+    <a href="/status">📡 Status</a>
+    <a href="/admin">🔒 Admin</a>
   </nav>
 
-  <h2>📡 Service Status</h2>
-  <div class="status-item">
-    <span class="dot green"></span> Shop Website – Operational
-  </div>
-  <div class="status-item">
-    <span class="dot green"></span> Payment Delivery – Operational
-  </div>
-  <div class="status-item">
-    <span class="dot yellow"></span> Script Updates Server – Degraded
+  <div class="glass">
+    <h2 style="margin-bottom:1.5rem;">📡 System Status</h2>
+    <div id="status-list">
+      <!-- Dynamic statuses will appear here -->
+      <div class="skeleton"></div>
+      <div class="skeleton" style="width:160px;"></div>
+      <div class="skeleton" style="width:180px;"></div>
+    </div>
+    <p style="color:#64748b; margin-top:2rem; font-size:0.9rem;" id="last-updated"></p>
   </div>
 
-  <p style="margin-top:30px; font-style:italic;">Last updated manually – check back for changes.</p>
+  <script>
+    async function loadStatus() {
+      const container = document.getElementById('status-list');
+      try {
+        const res = await fetch('/api/status');
+        const data = await res.json();
+        let html = '';
+        data.services.forEach(service => {
+          let dotClass = 'gray';
+          if (service.status === 2) dotClass = 'green';    // up
+          else if (service.status === 9) dotClass = 'yellow'; // paused/degraded
+          else if (service.status === 1) dotClass = 'red';   // down
+          html += `
+            <div style="display:flex; align-items:center; margin:0.6rem 0; font-size:1.1rem;">
+              <span class="status-dot ${dotClass}"></span>
+              <strong>${service.name}</strong>
+              <span style="margin-left:auto; color:#94a3b8;">${service.statusText}</span>
+            </div>`;
+        });
+        container.innerHTML = html;
+        document.getElementById('last-updated').textContent = 
+          `Last checked: ${new Date(data.checkedAt).toLocaleString()}`;
+      } catch (e) {
+        container.innerHTML = '<p style="color:#ef4444;">Failed to load status.</p>';
+      }
+    }
+    loadStatus();
+    // Refresh every 60 seconds
+    setInterval(loadStatus, 60000);
+  </script>
 </body>
 </html>
