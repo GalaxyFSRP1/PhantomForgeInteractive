@@ -1,1 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Panel</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    #admin-content { display: none; }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="/">Shop</a>
+    <a href="/status">Status</a>
+    <a href="/admin">Admin</a>
+  </nav>
 
+  <div id="login-form">
+    <h2>Admin Login</h2>
+    <input type="password" id="password" placeholder="Enter password">
+    <button onclick="login()">Unlock</button>
+  </div>
+
+  <div id="admin-content">
+    <h2>🔧 Admin Panel</h2>
+    <p>Total sales this week: 12</p>
+    <p>Pending support tickets: 3</p>
+    <button onclick="logout()">Lock again</button>
+  </div>
+
+  <script>
+    const CORRECT_PASSWORD = "changeMe123"; // ← CHANGE THIS!
+
+    function login() {
+      const pw = document.getElementById('password').value;
+      if (pw === CORRECT_PASSWORD) {
+        localStorage.setItem('admin_authenticated', 'true');
+        showAdmin();
+      } else {
+        alert('Wrong password');
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('admin_authenticated');
+      showAdmin();
+    }
+
+    function showAdmin() {
+      if (localStorage.getItem('admin_authenticated') === 'true') {
+        document.getElementById('login-form').style.display = 'none';
+        document.getElementById('admin-content').style.display = 'block';
+      } else {
+        document.getElementById('login-form').style.display = 'block';
+        document.getElementById('admin-content').style.display = 'none';
+      }
+    }
+
+    showAdmin(); // check on page load
+  </script>
+</body>
+</html>
