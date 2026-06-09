@@ -3,10 +3,8 @@ export default async function handler(req, res) {
     const apiKey = process.env.UPTIMEROBOT_API_KEY;
     if (!apiKey) return res.status(500).json({ error: 'API key not configured' });
 
-    // Use monitor ID from query, env variable, or fallback to first monitor
     let monitorId = req.query.id || process.env.GRAPH_MONITOR_ID;
     if (!monitorId) {
-      // If no specific monitor requested, get the first one from the list
       const monitorsRes = await fetch('https://api.uptimerobot.com/v2/getMonitors', {
         method: 'POST',
         headers: { 'content-type': 'application/x-www-form-urlencoded' },
@@ -20,20 +18,16 @@ export default async function handler(req, res) {
       }
     }
 
-    // Fetch response time logs for last 24 hours (custom_uptime_ratio=1 gives raw logs)
     const logsRes = await fetch('https://api.uptimerobot.com/v2/getMonitors', {
       method: 'POST',
       headers: { 'content-type': 'application/x-www-form-urlencoded' },
       body: `api_key=${apiKey}&format=json&monitors=${monitorId}&custom_uptime_ratios=1&logs=1&logs_start_date=${Date.now() - 86400000}&logs_end_date=${Date.now()}`
-      // Note: UptimeRobot logs API expects Unix timestamps. We ask for logs from 24h ago until now.
     });
     const data = await logsRes.json();
     if (data.stat !== 'ok') throw new Error('UptimeRobot API error');
 
     const monitor = data.monitors[0];
     const logs = monitor.logs || [];
-
-    // Format for Chart.js: labels (time) and data (response time in ms)
     const labels = logs.map(log => new Date(log.datetime * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
     const responseTimes = logs.map(log => log.response_time);
 
