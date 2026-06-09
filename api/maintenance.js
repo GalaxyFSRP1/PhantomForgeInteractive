@@ -6,7 +6,6 @@ export default function handler(req, res) {
     const filePath = join(process.cwd(), 'maintenance.json');
     const data = readFileSync(filePath, 'utf-8');
     const maintenance = JSON.parse(data);
-    // Ensure active is boolean
     res.status(200).json({
       active: maintenance.active === true,
       title: maintenance.title || 'Maintenance',
@@ -15,7 +14,6 @@ export default function handler(req, res) {
       endTime: maintenance.endTime || null
     });
   } catch (error) {
-    // If file missing / invalid -> not in maintenance
     res.status(200).json({ active: false });
   }
 }
