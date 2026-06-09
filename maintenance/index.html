@@ -60,7 +60,6 @@
         const diff = end - now;
         if (diff <= 0) {
           document.getElementById('countdown').textContent = 'Completed!';
-          // optionally reload the page after maintenance ends
           setTimeout(() => window.location.reload(), 5000);
           return;
         }
