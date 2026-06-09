@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Panel</title>
   <link rel="stylesheet" href="/css/style.css">
   <style>
@@ -10,53 +11,89 @@
 </head>
 <body>
   <nav>
-    <a href="/">Shop</a>
-    <a href="/status">Status</a>
-    <a href="/admin">Admin</a>
+    <a href="/">🛒 Shop</a>
+    <a href="/status">📡 Status</a>
+    <a href="/admin">🔒 Admin</a>
   </nav>
 
-  <div id="login-form">
-    <h2>Admin Login</h2>
-    <input type="password" id="password" placeholder="Enter password">
-    <button onclick="login()">Unlock</button>
+  <div class="glass" id="login-form">
+    <h2 style="margin-bottom:1rem;">Admin Login</h2>
+    <div style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap;">
+      <input type="password" id="password" placeholder="Admin password">
+      <button onclick="login()">Unlock</button>
+    </div>
+    <p id="login-error" style="color:#f87171; margin-top:0.5rem;"></p>
   </div>
 
   <div id="admin-content">
-    <h2>🔧 Admin Panel</h2>
-    <p>Total sales this week: 12</p>
-    <p>Pending support tickets: 3</p>
-    <button onclick="logout()">Lock again</button>
+    <div class="glass">
+      <h2>📊 Sales Dashboard</h2>
+      <div style="display:flex; gap:2rem; flex-wrap:wrap; margin-top:1rem;">
+        <div>
+          <p style="color:#94a3b8;">Today</p>
+          <p style="font-size:2rem; font-weight:700;">$142.00</p>
+        </div>
+        <div>
+          <p style="color:#94a3b8;">This Week</p>
+          <p style="font-size:2rem; font-weight:700;">$987.00</p>
+        </div>
+        <div>
+          <p style="color:#94a3b8;">Total Orders</p>
+          <p style="font-size:2rem; font-weight:700;">341</p>
+        </div>
+      </div>
+      <button onclick="logout()" style="margin-top:1.5rem;">🔒 Lock Panel</button>
+    </div>
   </div>
 
   <script>
-    const CORRECT_PASSWORD = "changeMe123"; // ← CHANGE THIS!
+    const API_BASE = window.location.origin;
 
-    function login() {
-      const pw = document.getElementById('password').value;
-      if (pw === CORRECT_PASSWORD) {
-        localStorage.setItem('admin_authenticated', 'true');
+    async function login() {
+      const password = document.getElementById('password').value;
+      const res = await fetch(`${API_BASE}/api/login`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ password })
+      });
+      const data = await res.json();
+      if (data.token) {
+        localStorage.setItem('admin_token', data.token);
         showAdmin();
       } else {
-        alert('Wrong password');
+        document.getElementById('login-error').textContent = data.error || 'Wrong password';
       }
     }
 
     function logout() {
-      localStorage.removeItem('admin_authenticated');
+      localStorage.removeItem('admin_token');
       showAdmin();
     }
 
-    function showAdmin() {
-      if (localStorage.getItem('admin_authenticated') === 'true') {
+    async function verifyToken() {
+      const token = localStorage.getItem('admin_token');
+      if (!token) return false;
+      const res = await fetch(`${API_BASE}/api/login`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ token })
+      });
+      return res.ok;
+    }
+
+    async function showAdmin() {
+      const valid = await verifyToken();
+      if (valid) {
         document.getElementById('login-form').style.display = 'none';
         document.getElementById('admin-content').style.display = 'block';
       } else {
+        localStorage.removeItem('admin_token');
         document.getElementById('login-form').style.display = 'block';
         document.getElementById('admin-content').style.display = 'none';
       }
     }
 
-    showAdmin(); // check on page load
+    showAdmin();
   </script>
 </body>
 </html>
