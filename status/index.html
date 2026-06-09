@@ -5,6 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Service Status</title>
   <link rel="stylesheet" href="/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    .maintenance-banner {
+      background: linear-gradient(135deg, #f59e0b, #eab308);
+      color: #0f0f1a;
+      padding: 1rem 1.5rem;
+      border-radius: 16px;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .chart-container {
+      position: relative;
+      height: 300px;
+      width: 100%;
+      margin-top: 1rem;
+    }
+  </style>
 </head>
 <body>
   <nav>
@@ -13,18 +32,49 @@
     <a href="/admin">🔒 Admin</a>
   </nav>
 
+  <!-- Maintenance banner (hidden by default) -->
+  <div id="maintenance-banner" class="glass maintenance-banner" style="display: none;">
+    <div>
+      <strong id="maint-title"></strong>
+      <p id="maint-message" style="margin:0.3rem 0 0;"></p>
+    </div>
+  </div>
+
   <div class="glass">
-    <h2 style="margin-bottom:1.5rem;">📡 System Status</h2>
+    <h2 style="margin-bottom:1.5rem;">📡 Current Status</h2>
     <div id="status-list">
-      <!-- Dynamic statuses will appear here -->
       <div class="skeleton"></div>
       <div class="skeleton" style="width:160px;"></div>
       <div class="skeleton" style="width:180px;"></div>
     </div>
-    <p style="color:#64748b; margin-top:2rem; font-size:0.9rem;" id="last-updated"></p>
+    <p style="color:#64748b; margin-top:1rem; font-size:0.9rem;" id="last-updated"></p>
+  </div>
+
+  <div class="glass" style="margin-top:2rem;">
+    <h3>📈 Response Time (24h)</h3>
+    <div class="chart-container">
+      <canvas id="responseChart"></canvas>
+    </div>
+    <p style="color:#94a3b8; margin-top:0.5rem;">Average: <span id="avg-response">—</span> ms</p>
   </div>
 
   <script>
+    // Fetch maintenance status
+    async function checkMaintenance() {
+      try {
+        const res = await fetch('/api/maintenance');
+        const data = await res.json();
+        if (data.active) {
+          document.getElementById('maintenance-banner').style.display = 'flex';
+          document.getElementById('maint-title').textContent = `🔧 ${data.title}`;
+          document.getElementById('maint-message').textContent = data.message;
+        } else {
+          document.getElementById('maintenance-banner').style.display = 'none';
+        }
+      } catch(e) { /* ignore */ }
+    }
+
+    // Fetch live statuses (as before)
     async function loadStatus() {
       const container = document.getElementById('status-list');
       try {
@@ -33,9 +83,9 @@
         let html = '';
         data.services.forEach(service => {
           let dotClass = 'gray';
-          if (service.status === 2) dotClass = 'green';    // up
-          else if (service.status === 9) dotClass = 'yellow'; // paused/degraded
-          else if (service.status === 1) dotClass = 'red';   // down
+          if (service.status === 2) dotClass = 'green';
+          else if (service.status === 9) dotClass = 'yellow';
+          else if (service.status === 1) dotClass = 'red';
           html += `
             <div style="display:flex; align-items:center; margin:0.6rem 0; font-size:1.1rem;">
               <span class="status-dot ${dotClass}"></span>
@@ -50,9 +100,72 @@
         container.innerHTML = '<p style="color:#ef4444;">Failed to load status.</p>';
       }
     }
+
+    // Fetch graph data and render chart
+    let chartInstance = null;
+    async function loadGraph() {
+      try {
+        // If you want a specific monitor, add ?id=MONITOR_ID to the URL
+        const res = await fetch('/api/status-graph');
+        const data = await res.json();
+        if (!data.labels || data.labels.length === 0) {
+          document.querySelector('.chart-container').innerHTML = '<p>No response time data yet.</p>';
+          return;
+        }
+
+        document.getElementById('avg-response').textContent = data.averageResponseTime;
+
+        const ctx = document.getElementById('responseChart').getContext('2d');
+        if (chartInstance) chartInstance.destroy();
+
+        chartInstance = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: data.labels,
+            datasets: [{
+              label: `${data.monitorName} response time (ms)`,
+              data: data.responseTimes,
+              borderColor: '#a78bfa',
+              backgroundColor: 'rgba(168, 85, 247, 0.1)',
+              fill: true,
+              tension: 0.3,
+              pointRadius: 0,
+              borderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: { color: 'rgba(255,255,255,0.05)' },
+                ticks: { color: '#94a3b8' }
+              },
+              x: {
+                grid: { display: false },
+                ticks: { color: '#94a3b8', maxTicksLimit: 12 }
+              }
+            },
+            plugins: {
+              legend: { display: false }
+            }
+          }
+        });
+      } catch (e) {
+        document.querySelector('.chart-container').innerHTML = '<p style="color:#ef4444;">Failed to load graph.</p>';
+      }
+    }
+
+    // Initial load
+    checkMaintenance();
     loadStatus();
-    // Refresh every 60 seconds
+    loadGraph();
+
+    // Refresh status and maintenance every 60 seconds, graph every 5 minutes
     setInterval(loadStatus, 60000);
+    setInterval(checkMaintenance, 60000);
+    setInterval(loadGraph, 300000);
   </script>
 </body>
 </html>
